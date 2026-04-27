@@ -201,7 +201,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, currentUser, acti
         </header>
         
         <main className="flex-1 overflow-y-auto bg-gray-50/50 print:bg-white print:overflow-visible">
-          <div className="p-4 md:p-8 print:p-0">
+          <div className={`${activeTab === 'chat' ? 'p-0 md:p-8' : 'p-4 md:p-8'} print:p-0`}>
             {children}
           </div>
         </main>

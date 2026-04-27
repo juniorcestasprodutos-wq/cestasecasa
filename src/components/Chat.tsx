@@ -144,7 +144,7 @@ const Chat: React.FC<ChatProps> = ({ clients, whatsappConfig }) => {
   );
 
   return (
-    <div className="flex h-[calc(100vh-160px)] bg-white rounded-[32px] shadow-2xl overflow-hidden border border-slate-100">
+    <div className="flex h-[calc(100dvh-64px)] md:h-[calc(100vh-160px)] bg-white rounded-none md:rounded-[32px] shadow-2xl overflow-hidden border border-slate-100">
       {/* Sidebar */}
       <div className={`w-full md:w-80 border-r border-slate-100 flex flex-col bg-slate-50/50 ${activeChat ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-6 space-y-4">
@@ -209,7 +209,7 @@ const Chat: React.FC<ChatProps> = ({ clients, whatsappConfig }) => {
         {activeChat ? (
           <>
             {/* Header */}
-            <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+            <div className="px-4 md:px-8 py-3 md:py-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white/80 backdrop-blur-md sticky top-0 z-10">
               <div className="flex items-center gap-4">
                 <button onClick={() => setActiveChat(null)} className="md:hidden p-2 -ml-2 text-slate-400 hover:text-slate-600">
                   <ChevronLeft size={24} />
@@ -231,11 +231,11 @@ const Chat: React.FC<ChatProps> = ({ clients, whatsappConfig }) => {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-50/30">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6 bg-slate-50/30">
               {messages.map((msg, idx) => (
                 <div key={msg.id} className={`flex ${msg.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[80%] md:max-w-[70%] space-y-1`}>
-                    <div className={`p-4 rounded-[24px] shadow-sm ${msg.direction === 'outbound' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'}`}>
+                    <div className={`p-3 md:p-4 rounded-[20px] md:rounded-[24px] shadow-sm ${msg.direction === 'outbound' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'}`}>
                       {msg.media_url ? (
                         <div className="space-y-3">
                           {msg.media_type === 'image' && (
@@ -268,8 +268,8 @@ const Chat: React.FC<ChatProps> = ({ clients, whatsappConfig }) => {
             </div>
 
             {/* Input */}
-            <div className="p-6 shrink-0 bg-white border-t border-slate-100">
-              <form onSubmit={handleSendMessage} className="flex items-center gap-4 bg-slate-50 p-2 rounded-[24px] border border-slate-100 focus-within:ring-2 focus-within:ring-blue-600/10 focus-within:border-blue-600/30 transition-all">
+            <div className="p-4 md:p-6 shrink-0 bg-white border-t border-slate-100">
+              <form onSubmit={handleSendMessage} className="flex items-center gap-2 md:gap-4 bg-slate-50 p-2 rounded-[24px] border border-slate-100 focus-within:ring-2 focus-within:ring-blue-600/10 focus-within:border-blue-600/30 transition-all">
                 <button type="button" className="p-3 text-slate-400 hover:text-blue-600 transition-colors"><ImageIcon size={20} /></button>
                 <input 
                   type="text" 

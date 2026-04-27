@@ -5,7 +5,7 @@ import { Role, User, Client, Sale, Installment, SaleItem, Task, Product, StockMo
 import { initialSales, mockCollectors, mockClients } from './mockData';
 import Layout from './components/Layout';
 import ReceiptForm from './components/ReceiptForm';
-import { formatCurrency, formatDate, sendWhatsAppMessage, generateRescheduleMessage } from './utils';
+import { formatCurrency, formatDate, sendWhatsAppMessage, generateRescheduleMessage, formatFirstName } from './utils';
 import {
   Plus, Search, Calendar, UserCheck, DollarSign, Wallet,
   MapPin, Send, ReceiptText, FileText, CheckCircle, Info, Eye, X,
@@ -744,7 +744,7 @@ const App: React.FC = () => {
                 {
                   type: "body",
                   parameters: [
-                    { type: "text", text: client.name || "Cliente" },
+                    { type: "text", text: formatFirstName(client.name) || "Cliente" },
                     { type: "text", text: amount.toFixed(2).replace('.', ',') }
                   ]
                 }
@@ -836,7 +836,7 @@ const App: React.FC = () => {
             {
               type: "body",
               parameters: [
-                { type: "text", text: routeItem.client?.name || "Cliente" },
+                { type: "text", text: formatFirstName(routeItem.client?.name) || "Cliente" },
                 { type: "text", text: routeItem.sale.id.toString() },
                 { type: "text", text: (routeItem.amount - routeItem.paidAmount).toFixed(2).replace('.', ',') },
                 { type: "text", text: pixCode || "" }
@@ -878,7 +878,7 @@ const App: React.FC = () => {
       };
       await dataService.saveSale(updatedSale);
       setSales(prev => prev.map(s => s.id === sale.id ? updatedSale : s));
-      handleSendWhatsApp(client.phone, generateRescheduleMessage(client.name, newDate));
+      handleSendWhatsApp(client.phone, generateRescheduleMessage(formatFirstName(client.name), newDate));
     } catch (err) {
       console.error("Error rescheduling", err);
       alert("Erro ao reagendar.");
@@ -1109,7 +1109,7 @@ const App: React.FC = () => {
 
       const { pixCode } = res.data;
 
-      const message = `Credi Fácil: Olá ${routeItem.client.name}, segue seu código PIX para pagamento da parcela ${routeItem.number}: \n\n${pixCode}\n\nValor: ${formatCurrency(routeItem.amount - routeItem.paidAmount)}`;
+      const message = `Credi Fácil: Olá ${formatFirstName(routeItem.client.name)}, segue seu código PIX para pagamento da parcela ${routeItem.number}: \n\n${pixCode}\n\nValor: ${formatCurrency(routeItem.amount - routeItem.paidAmount)}`;
       handleSendWhatsApp(routeItem.client.phone, message);
 
       // Update installment to mark as pixSent
@@ -1543,7 +1543,7 @@ const App: React.FC = () => {
                       </button>
                       <button 
                         title="Mensagem Manual (Texto Livre)"
-                        onClick={() => handleSendWhatsApp(routeItem.client?.phone!, `Credi Fácil: Olá ${routeItem.client?.name}, estou chegando para sua parcela.`)} 
+                        onClick={() => handleSendWhatsApp(routeItem.client?.phone!, `Credi Fácil: Olá ${formatFirstName(routeItem.client?.name)}, estou chegando para sua parcela.`)} 
                         className="p-4 bg-green-500 text-white rounded-2xl hover:bg-green-600 shadow-lg"
                       >
                         <Send size={20} />
@@ -2081,15 +2081,15 @@ const App: React.FC = () => {
         )}
 
         {isAddSaleModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"><div className="bg-white rounded-3xl w-full max-w-4xl p-8 shadow-2xl scale-in-center overflow-y-auto max-h-[90vh]"><div className="flex justify-between items-center mb-6"><h3 className="text-xl font-black uppercase tracking-tight">Nova Venda (Ficha)</h3><button onClick={() => setIsAddSaleModalOpen(false)}><X size={24} className="text-slate-400" /></button></div><div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"><div className="md:col-span-2"><div className="flex items-end gap-2"><div className="flex-1"><label className="block text-xs font-bold text-gray-400 uppercase mb-1">Cliente</label><select value={newSale.clientId} onChange={(e) => setNewSale({ ...newSale, clientId: e.target.value })} className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2.5 bg-gray-50 outline-none"><option value="">Selecione...</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><button onClick={() => setIsAddClientModalOpen(true)} className="p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:scale-95"><Plus size={24} /></button></div></div><div><label className="block text-xs font-bold text-gray-400 uppercase mb-1">Entrada (PGL)</label><input type="number" value={newSale.downPayment} onChange={(e) => setNewSale({ ...newSale, downPayment: e.target.value })} placeholder="R$ 0,00" className="w-full border-gray-300 rounded-lg p-2.5 bg-gray-50 outline-none shadow-sm focus:ring-blue-500" /></div>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"><div className="bg-white rounded-3xl w-full max-w-5xl p-8 shadow-2xl scale-in-center overflow-y-auto max-h-[90vh]"><div className="flex justify-between items-center mb-6"><h3 className="text-xl font-black uppercase tracking-tight">Nova Venda (Ficha)</h3><button onClick={() => setIsAddSaleModalOpen(false)}><X size={24} className="text-slate-400" /></button></div><div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"><div className="md:col-span-2"><div className="flex items-end gap-2"><div className="flex-1"><label className="block text-xs font-bold text-gray-400 uppercase mb-1">Cliente</label><select value={newSale.clientId} onChange={(e) => setNewSale({ ...newSale, clientId: e.target.value })} className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2.5 bg-gray-50 outline-none"><option value="">Selecione...</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><button onClick={() => setIsAddClientModalOpen(true)} className="p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:scale-95"><Plus size={24} /></button></div></div><div><label className="block text-xs font-bold text-gray-400 uppercase mb-1">Entrada (PGL)</label><input type="number" value={newSale.downPayment} onChange={(e) => setNewSale({ ...newSale, downPayment: e.target.value })} placeholder="R$ 0,00" className="w-full border-gray-300 rounded-lg p-2.5 bg-gray-50 outline-none shadow-sm focus:ring-blue-500" /></div>
             
             <div className="md:col-span-3 border-y border-slate-100 py-6 my-2">
               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Produtos / Itens da Venda</h4>
               
-              {/* Adicionar Item */}
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <div className="md:col-span-2">
-                  <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Produto (Catálogo)</label>
+              {/* Adicionar Item - Grade de 12 colunas para controle fino de largura */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                <div className="md:col-span-6">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Produto (Catálogo)</label>
                   <select 
                     value={selectedProductForItem} 
                     onChange={(e) => {
@@ -2098,55 +2098,53 @@ const App: React.FC = () => {
                       const prod = products.find(p => p.id === prodId);
                       if (prod) {
                         setSelectedProductPrice(prod.price.toString());
-                        setManualProductName(''); // Limpa o manual se escolher do catálogo
+                        setManualProductName(''); 
                       }
                     }} 
-                    className="w-full border-gray-300 rounded-xl p-2.5 bg-white outline-none shadow-sm focus:ring-blue-500 text-sm"
+                    className="w-full border border-gray-200 rounded-xl p-3 bg-white outline-none shadow-sm focus:ring-2 focus:ring-blue-500 text-sm font-bold"
                   >
                     <option value="">Escolha um produto...</option>
                     {products.map(p => <option key={p.id} value={p.id}>{p.name} - {formatCurrency(p.price)}</option>)}
                   </select>
                 </div>
-                <div className="md:col-span-2">
-                  <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Ou Digite Produto Avulso</label>
+                <div className="md:col-span-6">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Ou Digite Produto Avulso</label>
                   <input 
                     type="text"
                     value={manualProductName}
                     onChange={(e) => {
                       setManualProductName(e.target.value);
-                      if (e.target.value) {
-                        setSelectedProductForItem(''); // Limpa o catálogo se digitar manual
-                      }
+                      if (e.target.value) setSelectedProductForItem('');
                     }}
                     placeholder="Nome do produto..."
-                    className="w-full border-gray-300 rounded-xl p-2.5 bg-white outline-none shadow-sm focus:ring-blue-500 text-sm"
+                    className="w-full border border-gray-200 rounded-xl p-3 bg-white outline-none shadow-sm focus:ring-2 focus:ring-blue-500 text-sm font-bold"
                   />
                 </div>
-                <div className="md:col-span-1">
-                  <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Preço Unit.</label>
+                <div className="md:col-span-4">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Preço Unitário</label>
                   <input 
                     type="number" 
                     value={selectedProductPrice} 
                     onChange={(e) => setSelectedProductPrice(e.target.value)} 
                     placeholder="0.00"
-                    className="w-full border-gray-300 rounded-xl p-2.5 bg-white outline-none shadow-sm focus:ring-blue-500 text-sm" 
+                    className="w-full border border-gray-200 rounded-xl p-3 bg-white outline-none shadow-sm focus:ring-2 focus:ring-blue-500 text-sm font-bold" 
                   />
                 </div>
-                <div className="md:col-span-1">
-                  <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Qtd</label>
+                <div className="md:col-span-3">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Quantidade</label>
                   <input 
                     type="number" 
                     value={selectedProductQty} 
                     onChange={(e) => setSelectedProductQty(e.target.value)} 
-                    className="w-full border-gray-300 rounded-xl p-2.5 bg-white outline-none shadow-sm focus:ring-blue-500 text-sm" 
+                    className="w-full border border-gray-200 rounded-xl p-3 bg-white outline-none shadow-sm focus:ring-2 focus:ring-blue-500 text-sm font-bold" 
                   />
                 </div>
-                <div className="md:col-span-6 flex items-end mt-2">
+                <div className="md:col-span-5 flex items-end">
                   <button 
                     onClick={handleAddItemToSale}
-                    className="w-full py-3 bg-slate-900 text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all active:scale-95 flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-slate-900 text-white rounded-xl font-black uppercase text-xs tracking-widest hover:bg-black transition-all active:scale-95 flex items-center justify-center gap-2"
                   >
-                    <Plus size={16} /> Adicionar Produto ao Carrinho
+                    <Plus size={18} /> Adicionar Produto
                   </button>
                 </div>
               </div>
@@ -2174,60 +2172,64 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Formulário Principal - Grade de 12 colunas para aproveitamento total da largura */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-x-8 gap-y-6">
+            {/* Formulário Principal - Restaurado para 12 colunas para alinhamento correto */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-6">
               
-              {/* Linha 1: Total e Descrição */}
-              <div className="md:col-span-3">
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Total da Venda</label>
+              {/* Linha 1: Total e Parcelas - 50% cada (col-span-6) */}
+              <div className="md:col-span-6">
+                <label className="block text-xs font-black text-blue-600 uppercase mb-2 tracking-widest">Total da Venda</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-800 font-bold text-xs">R$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-800 font-black text-lg">R$</span>
                   <input 
                     type="number" 
                     value={newSale.totalAmount} 
                     onChange={(e) => setNewSale({ ...newSale, totalAmount: e.target.value })} 
                     placeholder="0,00" 
-                    className="w-full border-gray-300 rounded-xl p-3 pl-10 bg-blue-50 font-black text-blue-800 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 transition-all" 
+                    className="w-full border border-blue-200 rounded-xl p-4 pl-12 bg-blue-50 font-black text-xl text-blue-800 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 transition-all" 
                   />
                 </div>
               </div>
-              <div className="md:col-span-9">
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Descrição / Notas da Venda</label>
-                <input 
-                  type="text" 
-                  value={newSale.description} 
-                  onChange={(e) => setNewSale({ ...newSale, description: e.target.value })} 
-                  placeholder="Ex: Móveis, Cesta Básica, Cliente Indicado, etc." 
-                  className="w-full border-gray-300 rounded-xl p-3 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 transition-all" 
-                />
-              </div>
-              
-              {/* Linha 2: Data, Parcelas e Cobrador */}
-              <div className="md:col-span-4">
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Data 1º Vencimento</label>
-                <input 
-                  type="date" 
-                  value={newSale.firstDueDate} 
-                  onChange={(e) => setNewSale({ ...newSale, firstDueDate: e.target.value })} 
-                  className="w-full border-gray-300 rounded-xl p-3 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 font-bold transition-all" 
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1 whitespace-nowrap">Nº Parcelas</label>
+
+              <div className="md:col-span-6">
+                <label className="block text-xs font-black text-slate-400 uppercase mb-2 tracking-widest">Nº Parcelas</label>
                 <input 
                   type="number" 
                   value={newSale.installmentsCount} 
                   onChange={(e) => setNewSale({ ...newSale, installmentsCount: e.target.value })} 
-                  className="w-full border-gray-300 rounded-xl p-3 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 font-bold transition-all" 
+                  className="w-full border border-slate-200 rounded-xl p-4 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 font-black text-xl text-slate-800 transition-all" 
                 />
               </div>
+
+              {/* Linha 2: Vencimento e Descrição */}
+              <div className="md:col-span-4">
+                <label className="block text-xs font-black text-slate-400 uppercase mb-2 tracking-widest">1º Vencimento</label>
+                <input 
+                  type="date" 
+                  value={newSale.firstDueDate} 
+                  onChange={(e) => setNewSale({ ...newSale, firstDueDate: e.target.value })} 
+                  className="w-full border border-gray-200 rounded-xl p-4 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 font-bold text-sm transition-all" 
+                />
+              </div>
+
+              <div className="md:col-span-8">
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Descrição / Notas da Venda</label>
+                <input 
+                  type="text" 
+                  value={newSale.description} 
+                  onChange={(e) => setNewSale({ ...newSale, description: e.target.value })} 
+                  placeholder="Ex: Móveis, Cesta Básica, etc." 
+                  className="w-full border border-gray-200 rounded-xl p-4 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 transition-all text-sm" 
+                />
+              </div>
+              
+              {/* Linha 3: Responsáveis */}
               <div className="md:col-span-6">
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Cobrador Responsável</label>
                 <select 
                   value={newSale.collectorId} 
                   onChange={(e) => setNewSale({ ...newSale, collectorId: e.target.value })} 
                   disabled={currentUser?.roles?.includes(Role.COLLECTOR) && !currentUser?.roles?.includes(Role.MASTER)} 
-                  className="w-full border-gray-300 rounded-xl p-3 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 font-bold transition-all appearance-none cursor-pointer"
+                  className="w-full border border-gray-200 rounded-xl p-4 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 font-bold transition-all appearance-none cursor-pointer text-sm"
                 >
                   {collectors.filter(c => (c.roles?.includes(Role.COLLECTOR) || c.roles?.includes(Role.MASTER)) && c.active !== false).map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -2235,7 +2237,6 @@ const App: React.FC = () => {
                 </select>
               </div>
 
-              {/* Linha 3: Logística e Montagem */}
               <div className="md:col-span-6">
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Entregador</label>
                 <select 
@@ -2248,7 +2249,7 @@ const App: React.FC = () => {
                       collectorId: (prev.collectorId === 'loja' || !prev.collectorId) ? val : prev.collectorId 
                     }));
                   }} 
-                  className="w-full border-gray-300 rounded-xl p-3 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 transition-all appearance-none cursor-pointer"
+                  className="w-full border border-gray-200 rounded-xl p-4 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 transition-all appearance-none cursor-pointer text-sm"
                 >
                   <option value="">Selecione o entregador...</option>
                   {collectors.filter(c => (c.roles?.includes(Role.DELIVERY) || c.roles?.includes(Role.MASTER)) && c.active !== false).map(c => (
@@ -2257,24 +2258,25 @@ const App: React.FC = () => {
                 </select>
               </div>
 
-              <div className="md:col-span-2 flex items-end pb-3">
-                <label className="flex items-center gap-3 cursor-pointer group bg-slate-100 p-3 rounded-xl w-full hover:bg-slate-200 transition-all">
+              {/* Linha 4: Logística e Montagem */}
+              <div className="md:col-span-4 flex items-end">
+                <label className="flex items-center gap-3 cursor-pointer group bg-slate-100 p-4 rounded-xl w-full hover:bg-slate-200 transition-all border border-slate-200">
                   <input 
                     type="checkbox" 
                     id="is-assembly" 
                     checked={newSale.isAssembly} 
                     onChange={e => setNewSale({ ...newSale, isAssembly: e.target.checked })} 
-                    className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 accent-blue-600" 
+                    className="w-6 h-6 rounded border-gray-300 text-blue-600 focus:ring-blue-500 accent-blue-600" 
                   />
-                  <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none">Montagem?</span>
+                  <span className="text-xs font-black text-slate-600 uppercase tracking-widest leading-none">Precisa Montagem?</span>
                 </label>
               </div>
 
-              <div className={`md:col-span-4 transition-all ${newSale.isAssembly ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+              <div className={`md:col-span-8 transition-all ${newSale.isAssembly ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
                 {newSale.isAssembly && (
                   <>
                     <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Montador Designado</label>
-                    <select value={newSale.assemblerId} onChange={(e) => setNewSale({ ...newSale, assemblerId: e.target.value })} className="w-full border-gray-300 rounded-xl p-3 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 transition-all appearance-none cursor-pointer">
+                    <select value={newSale.assemblerId} onChange={(e) => setNewSale({ ...newSale, assemblerId: e.target.value })} className="w-full border border-gray-200 rounded-xl p-4 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 transition-all appearance-none cursor-pointer text-sm">
                       <option value="">Escolha o montador...</option>
                       {collectors.filter(c => (c.roles?.includes(Role.ASSEMBLER) || c.roles?.includes(Role.MASTER)) && c.active !== false).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
@@ -2282,13 +2284,13 @@ const App: React.FC = () => {
                 )}
               </div>
 
-              {/* Linha 6 - Observações */}
+              {/* Linha 5 - Observações */}
               <div className="md:col-span-12">
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Observações / Instruções para Entrega e Financeiro</label>
                 <textarea 
                   value={newSale.observations} 
                   onChange={e => setNewSale({ ...newSale, observations: e.target.value })} 
-                  className="w-full border-gray-300 rounded-xl p-4 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 h-28 resize-none transition-all placeholder:text-gray-300" 
+                  className="w-full border border-gray-200 rounded-2xl p-4 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 h-24 resize-none transition-all placeholder:text-gray-300 text-sm" 
                   placeholder="Ex: Deixar com o vizinho, receber somente em dinheiro, etc."
                 ></textarea>
               </div>
