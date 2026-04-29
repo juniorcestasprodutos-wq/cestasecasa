@@ -1084,7 +1084,7 @@ const App: React.FC = () => {
       const worker = collectors.find(c => c.id === newCollectorId);
       if (worker?.phone) {
         const client = clients.find(c => c.id === sale.clientId);
-        const msg = `Credi Fácil: Olá ${worker.name}, a venda #${sale.id} (${formatFirstName(client?.name || '')}) foi designada para sua carteira de cobrança.`;
+        const msg = `JUNIOR CESTAS E PRODUTOS: Olá ${worker.name}, a venda #${sale.id} (${formatFirstName(client?.name || '')}) foi designada para sua carteira de cobrança.`;
         await handleSendWhatsApp(worker.phone, msg);
       }
 
@@ -1109,7 +1109,7 @@ const App: React.FC = () => {
 
       const { pixCode } = res.data;
 
-      const message = `Credi Fácil: Olá ${formatFirstName(routeItem.client.name)}, segue seu código PIX para pagamento da parcela ${routeItem.number}: \n\n${pixCode}\n\nValor: ${formatCurrency(routeItem.amount - routeItem.paidAmount)}`;
+      const message = `JUNIOR CESTAS E PRODUTOS: Olá ${formatFirstName(routeItem.client.name)}, segue seu código PIX para pagamento da parcela ${routeItem.number}: \n\n${pixCode}\n\nValor: ${formatCurrency(routeItem.amount - routeItem.paidAmount)}`;
       handleSendWhatsApp(routeItem.client.phone, message);
 
       // Update installment to mark as pixSent
@@ -1543,7 +1543,7 @@ const App: React.FC = () => {
                       </button>
                       <button 
                         title="Mensagem Manual (Texto Livre)"
-                        onClick={() => handleSendWhatsApp(routeItem.client?.phone!, `Credi Fácil: Olá ${formatFirstName(routeItem.client?.name)}, estou chegando para sua parcela.`)} 
+                        onClick={() => handleSendWhatsApp(routeItem.client?.phone!, `JUNIOR CESTAS E PRODUTOS: Olá ${formatFirstName(routeItem.client?.name)}, estou chegando para sua parcela.`)} 
                         className="p-4 bg-green-500 text-white rounded-2xl hover:bg-green-600 shadow-lg"
                       >
                         <Send size={20} />
