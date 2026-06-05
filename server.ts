@@ -220,7 +220,7 @@ app.post("/api/send-whatsapp", async (req, res) => {
   const { whatsappApiToken, whatsappPhoneNumberId } = paymentConfig;
 
   if (!whatsappApiToken || !whatsappPhoneNumberId) {
-    return res.status(400).json({ error: "WhatsApp API não configurada." });
+    return res.status(400).json({ error: "Evolution API não configurada." });
   }
 
   try {
@@ -228,26 +228,31 @@ app.post("/api/send-whatsapp", async (req, res) => {
     // Ensure phone has country code (default to 55 for Brazil if not present)
     const formattedPhone = cleanedPhone.length <= 11 ? `55${cleanedPhone}` : cleanedPhone;
 
-    const payload: any = {
-      messaging_product: "whatsapp",
-      to: formattedPhone,
-      type: req.body.template ? "template" : "text",
-    };
+    const baseUrl = "https://evolution-api-production-8ad2.up.railway.app";
+    const instanceName = whatsappPhoneNumberId;
+    const apiKey = whatsappApiToken;
 
-    if (req.body.template) {
-      payload.template = req.body.template;
-    } else {
-      payload.text = { body: message };
+    // Use text message format for Evolution API
+    let textToSend = message;
+    if (req.body.template && req.body.template.components) {
+       // Se tivermos um template sendo enviado do frontend, extrair o texto principal dele
+       // ou ignorar se o frontend sempre manda o text puro também.
+       // Mas na lógica antiga o frontend mandava o objeto template. O frontend manda message como fallback?
+       // Let's assume frontend also sends `message` as string. If it's a template payload, we just fallback to `message`.
     }
 
-    console.log("[WhatsApp] Enviando payload para Meta:", JSON.stringify(payload, null, 2));
+    console.log(`[WhatsApp] Enviando via Evolution API para ${formattedPhone}`);
 
+    const url = `${baseUrl}/message/sendText/${instanceName}`;
     const response = await axios.post(
-      `https://graph.facebook.com/v22.0/${whatsappPhoneNumberId}/messages`,
-      payload,
+      url,
+      {
+        number: formattedPhone,
+        text: textToSend
+      },
       {
         headers: {
-          'Authorization': `Bearer ${whatsappApiToken}`,
+          'apikey': apiKey,
           'Content-Type': 'application/json'
         }
       }
@@ -255,8 +260,8 @@ app.post("/api/send-whatsapp", async (req, res) => {
 
     res.json({ status: "ok", data: response.data });
   } catch (error: any) {
-    console.error("WhatsApp API Error:", error.response?.data || error.message);
-    res.status(500).json({ error: "Erro ao enviar mensagem via WhatsApp API", details: error.response?.data });
+    console.error("Evolution API Error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Erro ao enviar mensagem via Evolution API", details: error.response?.data });
   }
 });
 
