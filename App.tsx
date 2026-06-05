@@ -1046,6 +1046,7 @@ const App: React.FC = () => {
   const handleSaveConfig = async () => {
     try {
       await dataService.saveConfig(mpConfig);
+      await axios.post('/api/config', mpConfig);
       alert("Configurações salvas com sucesso!");
     } catch (e) {
       alert("Erro ao salvar configurações.");

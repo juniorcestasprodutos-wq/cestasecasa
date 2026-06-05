@@ -280,6 +280,26 @@ app.get("/api/whatsapp/qrcode", async (req, res) => {
     });
     res.json(response.data);
   } catch (error: any) {
+    if (error.response?.status === 404) {
+      // Instância não existe, vamos criar
+      try {
+        const createUrl = `${whatsappBaseUrl}/instance/create`;
+        const createResponse = await axios.post(createUrl, {
+          instanceName: whatsappPhoneNumberId,
+          qrcode: true
+        }, {
+          headers: { 'apikey': whatsappApiToken }
+        });
+        
+        return res.json({ 
+          base64: createResponse.data?.qrcode?.base64 || createResponse.data?.qrcode, 
+          instance: createResponse.data?.instance 
+        });
+      } catch (createError: any) {
+        console.error("Evolution API Create Error:", createError.response?.data || createError.message);
+        return res.status(500).json({ error: "Erro ao criar instância no Evolution API", details: createError.response?.data });
+      }
+    }
     console.error("Evolution API Connect Error:", error.response?.data || error.message);
     res.status(500).json({ error: "Erro ao buscar QR Code", details: error.response?.data });
   }
