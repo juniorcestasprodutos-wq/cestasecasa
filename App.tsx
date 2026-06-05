@@ -204,7 +204,9 @@ const App: React.FC = () => {
   const [masterInstallmentsFilter, setMasterInstallmentsFilter] = useState({
     status: 'ALL' as 'ALL' | 'PENDING' | 'OVERDUE' | 'PAID' | 'TODAY',
     collectorId: 'ALL',
-    search: ''
+    search: '',
+    fromDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+    toDate: new Date().toISOString().split('T')[0]
   });
 
   const [deliveryFilter, setDeliveryFilter] = useState({
@@ -481,16 +483,25 @@ const App: React.FC = () => {
         }
       }
       sale.installments.forEach(inst => {
-        const inDateRange = inst.dueDate >= movementsFilter.fromDate && inst.dueDate <= movementsFilter.toDate;
         if (movementsFilter.type === 'RECEIVED') {
+          const pDate = inst.paymentDate || inst.dueDate;
+          const inDateRange = pDate >= movementsFilter.fromDate && pDate <= movementsFilter.toDate;
           if (inst.paidAmount > 0 && inDateRange) items.push({ ...inst, client, sale, displayValue: inst.paidAmount, typeLabel: `PARCELA ${inst.number}` });
         } else {
+          const inDateRange = inst.dueDate >= movementsFilter.fromDate && inst.dueDate <= movementsFilter.toDate;
           const isOverdue = inst.dueDate < today && (inst.status === 'PENDING' || inst.status === 'PARTIAL' || inst.status === 'RESCHEDULED');
           if (isOverdue && inDateRange) items.push({ ...inst, client, sale, displayValue: inst.amount - inst.paidAmount, typeLabel: `ATRASO P${inst.number}` });
         }
       });
     });
-    return items.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+    return items.sort((a, b) => {
+      if (movementsFilter.type === 'RECEIVED') {
+        const pDateA = a.paymentDate || a.dueDate;
+        const pDateB = b.paymentDate || b.dueDate;
+        return pDateA.localeCompare(pDateB);
+      }
+      return a.dueDate.localeCompare(b.dueDate);
+    });
   }, [sales, clients, movementsFilter, role, currentUser]);
 
   const handleSaveCollector = async () => {
@@ -1375,7 +1386,11 @@ const App: React.FC = () => {
     const filtered = allInstallments.filter(inst => {
       if (masterInstallmentsFilter.status === 'TODAY' && inst.dueDate !== today) return false;
       if (masterInstallmentsFilter.status === 'OVERDUE' && (inst.dueDate >= today || inst.status === 'PAID')) return false;
-      if (masterInstallmentsFilter.status === 'PAID' && inst.status !== 'PAID') return false;
+      if (masterInstallmentsFilter.status === 'PAID') {
+        if (inst.status !== 'PAID') return false;
+        const pDate = inst.paymentDate || inst.dueDate;
+        if (pDate < masterInstallmentsFilter.fromDate || pDate > masterInstallmentsFilter.toDate) return false;
+      }
       if (masterInstallmentsFilter.status === 'PENDING' && inst.status !== 'PENDING') return false;
       if (masterInstallmentsFilter.collectorId !== 'ALL' && inst.sale.collectorId !== masterInstallmentsFilter.collectorId) return false;
       if (masterInstallmentsFilter.search) {
@@ -1383,7 +1398,12 @@ const App: React.FC = () => {
         return inst.client?.name.toLowerCase().includes(search) || inst.sale.id.toLowerCase().includes(search);
       }
       return true;
-    }).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+    }).sort((a, b) => {
+      if (masterInstallmentsFilter.status === 'PAID') {
+         return (a.paymentDate || a.dueDate).localeCompare(b.paymentDate || b.dueDate);
+      }
+      return a.dueDate.localeCompare(b.dueDate);
+    });
 
     return (
       <div className="space-y-6">
@@ -1412,6 +1432,18 @@ const App: React.FC = () => {
               {collectors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
+          {masterInstallmentsFilter.status === 'PAID' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Pagos a partir de</label>
+                <input type="date" value={masterInstallmentsFilter.fromDate} onChange={e => setMasterInstallmentsFilter({ ...masterInstallmentsFilter, fromDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Pagos até</label>
+                <input type="date" value={masterInstallmentsFilter.toDate} onChange={e => setMasterInstallmentsFilter({ ...masterInstallmentsFilter, toDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+          )}
         </div>
         <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto"><table className="w-full text-left"><thead className="bg-slate-50 border-b border-slate-100"><tr><th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Vencimento</th><th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Pagto</th><th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Cliente</th><th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Venda</th><th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Valor</th><th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Cobrador</th><th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th><th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th></tr></thead><tbody className="divide-y divide-slate-50">{filtered.map((inst) => (<tr key={inst.id} className="hover:bg-slate-50/50"><td className="px-6 py-5 text-sm font-bold text-slate-600">{formatDate(inst.dueDate)}</td><td className="px-6 py-5 text-sm font-bold text-slate-600">{inst.status === 'PAID' && inst.paymentDate ? formatDate(inst.paymentDate) : '-'}</td><td className="px-6 py-5 text-sm font-black text-slate-800 uppercase">{inst.client?.name}</td><td className="px-6 py-5 text-sm font-bold text-slate-400">#{inst.sale.id} (P{inst.number})</td><td className="px-6 py-5 text-sm font-black text-blue-600">{formatCurrency(inst.amount)}</td><td className="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase">{collectors.find(c => c.id === inst.sale.collectorId)?.name}</td><td className="px-6 py-5"><span className={`text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest ${inst.status === 'PAID' ? 'bg-green-100 text-green-600' : inst.dueDate < today ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>{inst.status === 'PAID' ? 'Pago' : inst.dueDate < today ? 'Atrasado' : 'Pendente'}</span></td><td className="px-6 py-5 text-right flex justify-end gap-2">{inst.status !== 'PAID' && (<button onClick={() => handleGeneratePix(inst)} disabled={isGeneratingPix === inst.id} className={`p-2 rounded-lg transition-all ${isGeneratingPix === inst.id ? 'text-slate-300 bg-slate-50' : 'text-slate-300 hover:text-blue-600 hover:bg-blue-50'}`} title="Copiar PIX e Enviar Whats">{isGeneratingPix === inst.id ? <RefreshCw size={18} className="animate-spin" /> : <QrCode size={18} />}</button>)}<button onClick={() => setSelectedSaleForView(inst.sale)} className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Eye size={18} /></button><button onClick={() => { setSelectedInstallment(inst); setIsPaymentModalOpen(true); }} className="p-2 text-slate-300 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"><DollarSign size={18} /></button></td></tr>))}</tbody></table></div>

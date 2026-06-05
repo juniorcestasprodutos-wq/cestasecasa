@@ -50,7 +50,6 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, currentUser, acti
     if (roles.includes(Role.MASTER)) {
       return [
         { id: 'dashboard', label: 'Painel Master', icon: <LayoutDashboard size={20} /> },
-        { id: 'chat', label: 'Chat WhatsApp', icon: <MessageCircle size={20} /> },
         { id: 'master_installments', label: 'Parcelas', icon: <Layers size={20} /> },
         { id: 'collectors', label: 'Equipe', icon: <Users size={20} /> },
         { id: 'clients', label: 'Clientes', icon: <Contact size={20} /> },
@@ -79,7 +78,6 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRole, currentUser, acti
 
     if (roles.includes(Role.COLLECTOR)) {
       addItem({ id: 'route', label: 'Rota de Hoje', icon: <Route size={20} /> });
-      addItem({ id: 'chat', label: 'Chat WhatsApp', icon: <MessageCircle size={20} /> });
       addItem({ id: 'future', label: 'Futuras', icon: <CalendarClock size={20} /> });
       addItem({ id: 'sales', label: 'Vendas', icon: <ReceiptText size={20} /> });
       addItem({ id: 'movements', label: 'Movimentações', icon: <FileSearch size={20} /> });
