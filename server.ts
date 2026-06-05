@@ -287,7 +287,8 @@ app.get("/api/whatsapp/qrcode", async (req, res) => {
         const createUrl = `${whatsappBaseUrl}/instance/create`;
         const createResponse = await axios.post(createUrl, {
           instanceName: whatsappPhoneNumberId,
-          qrcode: true
+          qrcode: true,
+          integration: "WHATSAPP-BAILEYS"
         }, {
           headers: { 'apikey': whatsappApiToken }
         });
