@@ -839,25 +839,29 @@ const App: React.FC = () => {
         setIsGeneratingPix(null);
       }
 
-      // 2. Envia o Template e o código PIX para o backend (que cuida do segundo balão)
+      // 2. Monta a mensagem baseada no vencimento e envia para o backend (que cuida do segundo balão com o pixCode)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const parts = routeItem.dueDate.split('-');
+      const dueDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      dueDate.setHours(0, 0, 0, 0);
+      
+      const isPastDue = dueDate < today;
+      let dateText = "hoje é o vencimento da";
+      if (isPastDue) {
+          const formattedDueDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          dateText = `sua parcela está vencida desde ${formattedDueDate}`;
+      }
+      
+      const clientName = formatFirstName(routeItem.client?.name) || "Cliente";
+      const amountStr = (routeItem.amount - routeItem.paidAmount).toFixed(2).replace('.', ',');
+      
+      const messageText = `Olá ${clientName}!\nLembrando que ${dateText} da sua compra (Pedido #${routeItem.sale.id}) no valor de R$ ${amountStr}.\n\nSegue abaixo o PIX Copia e Cola para pagamento:`;
+
       await axios.post('/api/send-whatsapp', {
         phone: routeItem.client?.phone,
-        pixCode: pixCode, // O backend enviará o segundo balão automaticamente
-        template: {
-          name: "aviso_de_vencimento",
-          language: { code: "pt_BR" },
-          components: [
-            {
-              type: "body",
-              parameters: [
-                { type: "text", text: formatFirstName(routeItem.client?.name) || "Cliente" },
-                { type: "text", text: routeItem.sale.id.toString() },
-                { type: "text", text: (routeItem.amount - routeItem.paidAmount).toFixed(2).replace('.', ',') },
-                { type: "text", text: pixCode || "" }
-              ]
-            }
-          ]
-        }
+        message: messageText,
+        pixCode: pixCode
       });
 
       alert(`Cobrança oficial enviada com sucesso para ${routeItem.client?.name}!`);
