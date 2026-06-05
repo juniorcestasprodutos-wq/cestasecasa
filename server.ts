@@ -280,7 +280,8 @@ app.get("/api/whatsapp/qrcode", async (req, res) => {
     });
     res.json(response.data);
   } catch (error: any) {
-    if (error.response?.status === 404) {
+    const isNotFound = error.response?.status === 404 || error.response?.data?.status === 404 || JSON.stringify(error.response?.data || '').includes('does not exist');
+    if (isNotFound) {
       // Instância não existe, vamos criar
       try {
         const createUrl = `${whatsappBaseUrl}/instance/create`;
