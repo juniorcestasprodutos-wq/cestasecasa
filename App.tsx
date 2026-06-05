@@ -247,6 +247,7 @@ const App: React.FC = () => {
     googleApiKey: '',
     whatsappApiToken: '',
     whatsappPhoneNumberId: '',
+    whatsappBaseUrl: '',
     appsScriptUrl: '',
     creditLimitEnabled: false,
     creditLimitValue: 0,
@@ -255,6 +256,8 @@ const App: React.FC = () => {
     whatsappForwardingNumber: '',
     whatsappNotificationEnabled: false
   });
+
+  const [qrCodeBase64, setQrCodeBase64] = useState<string | null>(null);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
@@ -1952,68 +1955,70 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="space-y-6">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest border-b pb-2 flex items-center gap-2"><Send size={18} /> WhatsApp Business API (Oficial)</h3>
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest border-b pb-2 flex items-center gap-2"><Send size={18} /> API WhatsApp (Evolution API)</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">API Token (Permanente)</label>
-                      <input type="password" value={mpConfig.whatsappApiToken} onChange={e => setMpConfig({ ...mpConfig, whatsappApiToken: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="EAAB..." />
+                    <div className="md:col-span-2">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">URL Base do Servidor (ex: https://evolution...)</label>
+                      <input type="text" value={mpConfig.whatsappBaseUrl || ''} onChange={e => setMpConfig({ ...mpConfig, whatsappBaseUrl: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://..." />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">ID do Número de Telefone</label>
-                      <input type="text" value={mpConfig.whatsappPhoneNumberId} onChange={e => setMpConfig({ ...mpConfig, whatsappPhoneNumberId: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="109..." />
+                      <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Global API Key</label>
+                      <input type="password" value={mpConfig.whatsappApiToken} onChange={e => setMpConfig({ ...mpConfig, whatsappApiToken: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Chave global..." />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Nome da Instância</label>
+                      <input type="text" value={mpConfig.whatsappPhoneNumberId} onChange={e => setMpConfig({ ...mpConfig, whatsappPhoneNumberId: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="ex: loja1" />
                     </div>
                   </div>
-                  <button
-                    onClick={async () => {
-                      if (!mpConfig.whatsappApiToken || !mpConfig.whatsappPhoneNumberId) return alert("Configure os campos acima primeiro.");
-                      const testPhone = prompt("Digite seu número com DDD (ex: 11988887777):");
-                      if (!testPhone) return;
-                      try {
-                        // Tentar o template configurado no portal como Inglês (en)
-                        // Alterado para pt_BR e melhorado tratamento de erro
-                        await axios.post('/api/send-whatsapp', { 
-                          phone: testPhone, 
-                          template: { 
-                            name: "aviso_de_vencimento", 
-                            language: { code: "pt_BR" },
-                            components: [
-                              {
-                                type: "body",
-                                parameters: [
-                                  { type: "text", text: "TESTE" },
-                                  { type: "text", text: "0000" },
-                                  { type: "text", text: "0,00" },
-                                  { type: "text", text: "PIX_TESTE" }
-                                ]
-                              }
-                            ]
-                          } 
-                        });
-                        alert("Sucesso! Template oficial 'aviso_de_vencimento' enviado em Português.");
-                      } catch (e: any) {
-                        const errorData = e.response?.data;
-                        const errorMsg = errorData?.message || errorData?.error || e.message;
-                        alert("Falha no teste: " + errorMsg + "\n\nVerifique se o Template 'aviso_de_vencimento' está ativo no idioma Português (pt_BR) no seu painel da Meta.");
-                        
-                        // Fallback de diagnóstico: tentar o hello_world
-                        if (confirm("O template principal falhou. Deseja tentar o 'hello_world' apenas para confirmar se o TOKEN e o ID estão corretos?")) {
-                           try {
-                             await axios.post('/api/send-whatsapp', { 
-                               phone: testPhone, 
-                               template: { name: "hello_world", language: { code: "en_US" } } 
-                             });
-                             alert("O Token e o ID do Telefone estão CORRETOS! O problema é apenas o nome ou idioma do template 'aviso_de_vencimento'. Verifique no painel da Meta.");
-                           } catch (err: any) {
-                             const errData = err.response?.data;
-                             alert("O TOKEN ou ID também falharam: " + (errData?.message || err.message));
-                           }
+                  <div className="flex gap-4 items-center mt-4">
+                    <button
+                      onClick={async () => {
+                        if (!mpConfig.whatsappApiToken || !mpConfig.whatsappPhoneNumberId || !mpConfig.whatsappBaseUrl) return alert("Configure todos os campos acima e salve as configurações primeiro.");
+                        try {
+                          alert("Buscando QR Code... Aguarde um momento.");
+                          const res = await axios.get('/api/whatsapp/qrcode');
+                          if (res.data && res.data.base64) {
+                            setQrCodeBase64(res.data.base64);
+                          } else if (res.data && res.data.instance?.state === 'open') {
+                            alert("O WhatsApp já está conectado nesta instância!");
+                            setQrCodeBase64(null);
+                          } else {
+                            alert("Instância não retornou QR Code. Status: " + JSON.stringify(res.data));
+                          }
+                        } catch (e: any) {
+                          alert("Falha ao buscar QR Code: " + (e.response?.data?.error || e.message));
                         }
-                      }
-                    }}
-                    className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg transition-all"
-                  >
-                    Testar Conexão
-                  </button>
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl text-sm"
+                    >
+                      Gerar / Ver QR Code
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!mpConfig.whatsappApiToken || !mpConfig.whatsappPhoneNumberId || !mpConfig.whatsappBaseUrl) return alert("Configure os campos acima primeiro.");
+                        const testPhone = prompt("Digite seu número com DDD (ex: 11988887777):");
+                        if (!testPhone) return;
+                        try {
+                          await axios.post('/api/send-whatsapp', { 
+                            phone: testPhone, 
+                            message: "Teste de conexão com a Evolution API concluído com sucesso!"
+                          });
+                          alert("Sucesso! Mensagem de teste enviada.");
+                        } catch (e: any) {
+                          alert("Falha no teste: " + (e.response?.data?.error || e.message));
+                        }
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl text-sm"
+                    >
+                      Testar Envio
+                    </button>
+                  </div>
+                  {qrCodeBase64 && (
+                    <div className="mt-6 p-6 bg-white border border-slate-200 rounded-xl flex flex-col items-center">
+                      <p className="text-sm font-bold text-slate-500 mb-4 uppercase tracking-wider">Escaneie o QR Code no seu WhatsApp</p>
+                      <img src={qrCodeBase64} alt="QR Code WhatsApp" className="w-64 h-64 border border-slate-100 rounded-xl shadow-sm" />
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-6">

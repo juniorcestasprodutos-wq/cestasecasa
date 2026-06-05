@@ -27,7 +27,8 @@ let paymentConfig = {
   googleSheetId: '',
   googleApiKey: '',
   whatsappApiToken: '',
-  whatsappPhoneNumberId: ''
+  whatsappPhoneNumberId: '',
+  whatsappBaseUrl: ''
 };
 
 if (fs.existsSync(CONFIG_FILE)) {
@@ -228,7 +229,7 @@ app.post("/api/send-whatsapp", async (req, res) => {
     // Ensure phone has country code (default to 55 for Brazil if not present)
     const formattedPhone = cleanedPhone.length <= 11 ? `55${cleanedPhone}` : cleanedPhone;
 
-    const baseUrl = "https://evolution-api-production-8ad2.up.railway.app";
+    const baseUrl = paymentConfig.whatsappBaseUrl || "https://evolution-api-production-8ad2.up.railway.app";
     const instanceName = whatsappPhoneNumberId;
     const apiKey = whatsappApiToken;
 
@@ -262,6 +263,25 @@ app.post("/api/send-whatsapp", async (req, res) => {
   } catch (error: any) {
     console.error("Evolution API Error:", error.response?.data || error.message);
     res.status(500).json({ error: "Erro ao enviar mensagem via Evolution API", details: error.response?.data });
+  }
+});
+
+app.get("/api/whatsapp/qrcode", async (req, res) => {
+  const { whatsappApiToken, whatsappPhoneNumberId, whatsappBaseUrl } = paymentConfig;
+  
+  if (!whatsappApiToken || !whatsappPhoneNumberId || !whatsappBaseUrl) {
+    return res.status(400).json({ error: "Evolution API não configurada." });
+  }
+
+  try {
+    const url = `${whatsappBaseUrl}/instance/connect/${whatsappPhoneNumberId}`;
+    const response = await axios.get(url, {
+      headers: { 'apikey': whatsappApiToken }
+    });
+    res.json(response.data);
+  } catch (error: any) {
+    console.error("Evolution API Connect Error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Erro ao buscar QR Code", details: error.response?.data });
   }
 });
 

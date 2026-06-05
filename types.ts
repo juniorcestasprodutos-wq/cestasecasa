@@ -98,6 +98,7 @@ export interface PaymentProviderConfig {
   googleApiKey: string;
   whatsappApiToken?: string;
   whatsappPhoneNumberId?: string;
+  whatsappBaseUrl?: string;
   appsScriptUrl?: string;
   creditLimitEnabled?: boolean;
   creditLimitValue?: number;
