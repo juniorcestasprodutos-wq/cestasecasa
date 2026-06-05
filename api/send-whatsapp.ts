@@ -76,9 +76,28 @@ export default async function handler(req: any, res: any) {
                 .ilike('phone', `%${formattedPhone.slice(-8)}%`)
                 .single();
 
+            let logMessage = message;
+            if (template) {
+                const params = template.components?.find((c: any) => c.type === 'body')?.parameters || [];
+                const paramValues = params.map((p: any) => p.text);
+                
+                if (template.name === 'aviso_de_vencimento') {
+                    const nome = paramValues[0] || '';
+                    const parcela = paramValues[1] || '';
+                    const valor = paramValues[2] || '';
+                    logMessage = `JUNIOR CESTAS E PRODUTOS: Olá ${nome}, segue seu código PIX para pagamento da parcela ${parcela}:\n\nValor: R$ ${valor}`;
+                } else if (template.name === 'obrigadopagamentoo') {
+                    const nome = paramValues[0] || '';
+                    const valor = paramValues[1] || '';
+                    logMessage = `JUNIOR CESTAS E PRODUTOS: Olá ${nome}, recebemos o seu pagamento de R$ ${valor}. Obrigado!`;
+                } else {
+                    logMessage = `[Notificação Oficial: ${template.name}]`;
+                }
+            }
+
             const logEntry = {
                 phone: formattedPhone,
-                message: template ? `[Notificação Oficial: ${template.name}]` : message,
+                message: logMessage,
                 direction: 'outbound' as const,
                 client_id: client?.id || null
             };
