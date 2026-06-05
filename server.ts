@@ -235,21 +235,32 @@ app.post("/api/send-whatsapp", async (req, res) => {
 
     // Use text message format for Evolution API
     let textToSend = message;
-    if (req.body.template && req.body.template.components) {
-       // Se tivermos um template sendo enviado do frontend, extrair o texto principal dele
-       // ou ignorar se o frontend sempre manda o text puro também.
-       // Mas na lógica antiga o frontend mandava o objeto template. O frontend manda message como fallback?
-       // Let's assume frontend also sends `message` as string. If it's a template payload, we just fallback to `message`.
+    let secondTextToSend = req.body.pixCode || null;
+
+    if (req.body.template && req.body.template.name) {
+       const tName = req.body.template.name;
+       const params = req.body.template.components?.[0]?.parameters?.map((p: any) => p.text) || [];
+       
+       if (tName === 'obrigadopagamentoo') {
+           textToSend = `Olá ${params[0] || 'Cliente'}!\nRecebemos o seu pagamento no valor de R$ ${params[1]}.\nMuito obrigado!`;
+       } else if (tName === 'aviso_de_vencimento') {
+           textToSend = `Olá ${params[0] || 'Cliente'}!\nLembrando que hoje é o vencimento da parcela da sua compra no valor de R$ ${params[2]}.\n\nSegue abaixo o PIX Copia e Cola para pagamento:`;
+           if (!secondTextToSend && params[3]) {
+               secondTextToSend = params[3];
+           }
+       }
     }
 
     console.log(`[WhatsApp] Enviando via Evolution API para ${formattedPhone}`);
 
     const url = `${baseUrl}/message/sendText/${instanceName}`;
+    
+    // 1. Enviar mensagem principal
     const response = await axios.post(
       url,
       {
         number: formattedPhone,
-        text: textToSend
+        text: textToSend || "Mensagem automática"
       },
       {
         headers: {
@@ -258,6 +269,25 @@ app.post("/api/send-whatsapp", async (req, res) => {
         }
       }
     );
+
+    // 2. Enviar segundo balão (só o PIX Copia e Cola)
+    if (secondTextToSend) {
+      // Pequeno delay para garantir a ordem das mensagens no WhatsApp
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await axios.post(
+        url,
+        {
+          number: formattedPhone,
+          text: secondTextToSend
+        },
+        {
+          headers: {
+            'apikey': apiKey,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+    }
 
     res.json({ status: "ok", data: response.data });
   } catch (error: any) {
