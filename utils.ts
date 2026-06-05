@@ -18,7 +18,7 @@ export const sendWhatsAppMessage = (phone: string, message: string) => {
 };
 
 export const generateRescheduleMessage = (clientName: string, dueDate: string) => {
-  return `Olá ${clientName}, notamos que sua parcela com vencimento hoje não foi paga. Reagendamos o pagamento para ${formatDate(dueDate)}. Favor confirmar o recebimento desta mensagem. Atenciosamente, Junior Cestas e Produto.`;
+  return `Olá ${clientName}, notamos que sua parcela com vencimento hoje não foi paga. Reagendamos o pagamento para ${formatDate(dueDate)}. Favor confirmar o recebimento desta mensagem. Atenciosamente, Cestas e Casa.`;
 };
 
 export const formatFirstName = (name: string) => {

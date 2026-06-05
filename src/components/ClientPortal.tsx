@@ -78,7 +78,7 @@ const ClientPortal: React.FC<ClientPortalProps> = ({ sales, clients }) => {
               <ReceiptText size={32} />
             </div>
             <h1 className="text-2xl font-black uppercase tracking-tighter">Portal do Cliente</h1>
-            <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mt-2">Auto-atendimento Junior Cestas e Produto</p>
+            <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mt-2">Auto-atendimento Cestas e Casa</p>
           </div>
 
           <div className="p-8">
@@ -216,7 +216,7 @@ const ClientPortal: React.FC<ClientPortalProps> = ({ sales, clients }) => {
         </div>
         
         <p className="text-center mt-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-          © {new Date().getFullYear()} Junior Cestas e Produto • Sistema de Cobrança
+          © {new Date().getFullYear()} Cestas e Casa • Sistema de Cobrança
         </p>
       </div>
     </div>

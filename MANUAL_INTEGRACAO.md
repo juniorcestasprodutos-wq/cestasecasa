@@ -1,4 +1,4 @@
-# Manual de Integração: Junior Cestas e Produto + Mercado Pago + N8N
+# Manual de Integração: Cestas e Casa + Mercado Pago + N8N
 
 Este guia explica como configurar o sistema para gerar cobranças PIX automaticamente e enviar notificações via WhatsApp.
 

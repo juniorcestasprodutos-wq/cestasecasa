@@ -85,11 +85,11 @@ export default async function handler(req: any, res: any) {
                     const nome = paramValues[0] || '';
                     const parcela = paramValues[1] || '';
                     const valor = paramValues[2] || '';
-                    logMessage = `JUNIOR CESTAS E PRODUTOS: Olá ${nome}, segue seu código PIX para pagamento da parcela ${parcela}:\n\nValor: R$ ${valor}`;
+                    logMessage = `CESTAS E CASA: Olá ${nome}, segue seu código PIX para pagamento da parcela ${parcela}:\n\nValor: R$ ${valor}`;
                 } else if (template.name === 'obrigadopagamentoo') {
                     const nome = paramValues[0] || '';
                     const valor = paramValues[1] || '';
-                    logMessage = `JUNIOR CESTAS E PRODUTOS: Olá ${nome}, recebemos o seu pagamento de R$ ${valor}. Obrigado!`;
+                    logMessage = `CESTAS E CASA: Olá ${nome}, recebemos o seu pagamento de R$ ${valor}. Obrigado!`;
                 } else {
                     logMessage = `[Notificação Oficial: ${template.name}]`;
                 }
