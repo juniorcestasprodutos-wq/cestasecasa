@@ -2205,7 +2205,7 @@ const App: React.FC = () => {
             </div>
 
             {/* Formulário Principal - Restaurado para 12 colunas para alinhamento correto */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-6">
+            <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-6">
               
               {/* Linha 1: Total e Parcelas - 50% cada (col-span-6) */}
               <div className="md:col-span-6">
