@@ -5,7 +5,7 @@ import { Role, User, Client, Sale, Installment, SaleItem, Task, Product, StockMo
 import { initialSales, mockCollectors, mockClients } from './mockData';
 import Layout from './components/Layout';
 import ReceiptForm from './components/ReceiptForm';
-import { formatCurrency, formatDate, sendWhatsAppMessage, generateRescheduleMessage, formatFirstName } from './utils';
+import { formatCurrency, formatDate, sendWhatsAppMessage, generateRescheduleMessage, formatFirstName, applyCurrencyMask, parseCurrencyMask, applyDateMask } from './utils';
 import {
   Plus, Search, Calendar, UserCheck, DollarSign, Wallet,
   MapPin, Send, ReceiptText, FileText, CheckCircle, Info, Eye, X,
@@ -146,11 +146,11 @@ const App: React.FC = () => {
       if (product) {
         finalProductId = product.id;
         finalDescription = product.name;
-        finalPrice = parseFloat(selectedProductPrice) || product.price;
+        finalPrice = parseCurrencyMask(selectedProductPrice) || product.price;
       }
     } else if (manualProductName.trim()) {
       finalDescription = manualProductName.trim();
-      finalPrice = parseFloat(selectedProductPrice) || 0;
+      finalPrice = parseCurrencyMask(selectedProductPrice) || 0;
     } else {
       return alert("Selecione um produto ou digite o nome de um produto avulso.");
     }
@@ -173,7 +173,7 @@ const App: React.FC = () => {
     setNewSale({
       ...newSale,
       items: updatedItems,
-      totalAmount: totalVenda.toFixed(2),
+      totalAmount: applyCurrencyMask(totalVenda.toFixed(2)),
       description: descGeral
     });
 
@@ -193,7 +193,7 @@ const App: React.FC = () => {
     setNewSale({
       ...newSale,
       items: updatedItems,
-      totalAmount: totalVenda.toString(),
+      totalAmount: applyCurrencyMask(totalVenda.toFixed(2)),
       description: descGeral
     });
   };
@@ -705,8 +705,8 @@ const App: React.FC = () => {
 
   const handlePayment = async () => {
     if (!selectedInstallment || !paymentAmount) return;
-    const amount = parseFloat(paymentAmount);
-    const adjustment = parseFloat(adjustmentValue) || 0;
+    const amount = parseCurrencyMask(paymentAmount) || 0;
+    const adjustment = parseCurrencyMask(adjustmentValue) || 0;
 
     try {
       let finalAdjustment = adjustment;
@@ -910,9 +910,9 @@ const App: React.FC = () => {
         return;
       }
 
-      const total = parseFloat(newSale.totalAmount) || 0;
+      const total = parseCurrencyMask(newSale.totalAmount) || 0;
       const installmentsCount = parseInt(newSale.installmentsCount) || 1;
-      const downPayment = parseFloat(newSale.downPayment || '0') || 0;
+      const downPayment = parseCurrencyMask(newSale.downPayment) || 0;
 
       if (total <= 0) {
         alert("O total da venda deve ser maior que zero.");
@@ -955,14 +955,11 @@ const App: React.FC = () => {
       const nextId = numericIds.length > 0 ? Math.max(...numericIds) + 1 : 1001;
       const saleId = nextId.toString();
       
-      if (!newSale.firstDueDate) {
-        alert("Por favor, selecione a data do primeiro vencimento.");
-        return;
-      }
-      
-      const firstDue = new Date(newSale.firstDueDate + 'T12:00:00'); // Use noon to avoid timezone shifts
+      const firstDueParts = newSale.firstDueDate.split('/');
+      const firstDue = new Date(parseInt(firstDueParts[2]), parseInt(firstDueParts[1]) - 1, parseInt(firstDueParts[0]));
+
       if (isNaN(firstDue.getTime())) {
-        alert("Data de vencimento inválida.");
+        alert("Data de vencimento inválida. Use DD/MM/AAAA.");
         return;
       }
 
@@ -1591,8 +1588,8 @@ const App: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         )) : (
           <div className="flex flex-col items-center justify-center h-[40vh] text-slate-300">
@@ -2139,7 +2136,7 @@ const App: React.FC = () => {
         )}
 
         {isAddSaleModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"><div className="bg-white rounded-3xl w-full max-w-5xl p-8 shadow-2xl scale-in-center overflow-y-auto max-h-[90vh]"><div className="flex justify-between items-center mb-6"><h3 className="text-xl font-black uppercase tracking-tight">Nova Venda (Ficha)</h3><button onClick={() => setIsAddSaleModalOpen(false)}><X size={24} className="text-slate-400" /></button></div><div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"><div className="md:col-span-2"><div className="flex items-end gap-2"><div className="flex-1"><label className="block text-xs font-bold text-gray-400 uppercase mb-1">Cliente</label><select value={newSale.clientId} onChange={(e) => setNewSale({ ...newSale, clientId: e.target.value })} className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2.5 bg-gray-50 outline-none"><option value="">Selecione...</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><button onClick={() => setIsAddClientModalOpen(true)} className="p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:scale-95"><Plus size={24} /></button></div></div><div><label className="block text-xs font-bold text-gray-400 uppercase mb-1">Entrada (PGL)</label><input type="number" value={newSale.downPayment} onChange={(e) => setNewSale({ ...newSale, downPayment: e.target.value })} placeholder="R$ 0,00" className="w-full border-gray-300 rounded-lg p-2.5 bg-gray-50 outline-none shadow-sm focus:ring-blue-500" /></div>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"><div className="bg-white rounded-3xl w-full max-w-5xl p-8 shadow-2xl scale-in-center overflow-y-auto max-h-[90vh]"><div className="flex justify-between items-center mb-6"><h3 className="text-xl font-black uppercase tracking-tight">Nova Venda (Ficha)</h3><button onClick={() => setIsAddSaleModalOpen(false)}><X size={24} className="text-slate-400" /></button></div><div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"><div className="md:col-span-2"><div className="flex items-end gap-2"><div className="flex-1"><label className="block text-xs font-bold text-gray-400 uppercase mb-1">Cliente</label><select value={newSale.clientId} onChange={(e) => setNewSale({ ...newSale, clientId: e.target.value })} className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2.5 bg-gray-50 outline-none"><option value="">Selecione...</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><button onClick={() => setIsAddClientModalOpen(true)} className="p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:scale-95"><Plus size={24} /></button></div></div><div><label className="block text-xs font-bold text-gray-400 uppercase mb-1">Entrada (PGL)</label><input type="text" value={newSale.downPayment} onChange={(e) => setNewSale({ ...newSale, downPayment: applyCurrencyMask(e.target.value) })} placeholder="R$ 0,00" className="w-full border-gray-300 rounded-lg p-2.5 bg-gray-50 outline-none shadow-sm focus:ring-blue-500" /></div>
             
             <div className="md:col-span-3 border-y border-slate-100 py-6 my-2">
               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Produtos / Itens da Venda</h4>
@@ -2151,13 +2148,10 @@ const App: React.FC = () => {
                   <select 
                     value={selectedProductForItem} 
                     onChange={(e) => {
-                      const prodId = e.target.value;
-                      setSelectedProductForItem(prodId);
-                      const prod = products.find(p => p.id === prodId);
-                      if (prod) {
-                        setSelectedProductPrice(prod.price.toString());
-                        setManualProductName(''); 
-                      }
+                      setSelectedProductForItem(e.target.value);
+                      const price = products.find(p => p.id === e.target.value)?.price || '';
+                      setSelectedProductPrice(price ? applyCurrencyMask(price.toFixed(2)) : '');
+                      if (e.target.value) setManualProductName(''); 
                     }} 
                     className="w-full border border-gray-200 rounded-xl p-3 bg-white outline-none shadow-sm focus:ring-2 focus:ring-blue-500 text-sm font-bold"
                   >
@@ -2181,10 +2175,10 @@ const App: React.FC = () => {
                 <div className="md:col-span-4">
                   <label className="block text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Preço Unitário</label>
                   <input 
-                    type="number" 
+                    type="text" 
                     value={selectedProductPrice} 
-                    onChange={(e) => setSelectedProductPrice(e.target.value)} 
-                    placeholder="0.00"
+                    onChange={(e) => setSelectedProductPrice(applyCurrencyMask(e.target.value))} 
+                    placeholder="0,00"
                     className="w-full border border-gray-200 rounded-xl p-3 bg-white outline-none shadow-sm focus:ring-2 focus:ring-blue-500 text-sm font-bold" 
                   />
                 </div>
@@ -2239,9 +2233,9 @@ const App: React.FC = () => {
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-800 font-black text-lg">R$</span>
                   <input 
-                    type="number" 
+                    type="text" 
                     value={newSale.totalAmount} 
-                    onChange={(e) => setNewSale({ ...newSale, totalAmount: e.target.value })} 
+                    onChange={(e) => setNewSale({ ...newSale, totalAmount: applyCurrencyMask(e.target.value) })} 
                     placeholder="0,00" 
                     className="w-full border border-blue-200 rounded-xl p-4 pl-12 bg-blue-50 font-black text-xl text-blue-800 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 transition-all" 
                   />
@@ -2262,9 +2256,10 @@ const App: React.FC = () => {
               <div className="md:col-span-4">
                 <label className="block text-xs font-black text-slate-400 uppercase mb-2 tracking-widest">1º Vencimento</label>
                 <input 
-                  type="date" 
+                  type="text" 
                   value={newSale.firstDueDate} 
-                  onChange={(e) => setNewSale({ ...newSale, firstDueDate: e.target.value })} 
+                  onChange={(e) => setNewSale({ ...newSale, firstDueDate: applyDateMask(e.target.value) })} 
+                  placeholder="DD/MM/AAAA"
                   className="w-full border border-gray-200 rounded-xl p-4 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 font-bold text-sm transition-all" 
                 />
               </div>

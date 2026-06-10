@@ -27,3 +27,27 @@ export const formatFirstName = (name: string) => {
   if (!name) return '';
   return name.trim().split(' ')[0];
 };
+
+export const applyCurrencyMask = (value: string) => {
+  let v = value.replace(/\D/g, '');
+  if (!v) return '';
+  v = (parseInt(v, 10) / 100).toFixed(2).replace('.', ',');
+  v = v.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return v;
+};
+
+export const parseCurrencyMask = (value: string) => {
+  if (!value) return 0;
+  return parseFloat(value.replace(/\./g, '').replace(',', '.'));
+};
+
+export const applyDateMask = (value: string) => {
+  let v = value.replace(/\D/g, '');
+  if (v.length > 8) v = v.slice(0, 8);
+  if (v.length > 4) {
+    return v.replace(/^(\d{2})(\d{2})(\d+)/, '$1/$2/$3');
+  } else if (v.length > 2) {
+    return v.replace(/^(\d{2})(\d+)/, '$1/$2');
+  }
+  return v;
+};
