@@ -1441,11 +1441,11 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
               <div>
                 <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Pagos a partir de</label>
-                <input type="date" value={masterInstallmentsFilter.fromDate} onChange={e => setMasterInstallmentsFilter({ ...masterInstallmentsFilter, fromDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                <BrazilianDateInput value={masterInstallmentsFilter.fromDate} onChange={val => setMasterInstallmentsFilter({ ...masterInstallmentsFilter, fromDate: val })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Pagos até</label>
-                <input type="date" value={masterInstallmentsFilter.toDate} onChange={e => setMasterInstallmentsFilter({ ...masterInstallmentsFilter, toDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                <BrazilianDateInput value={masterInstallmentsFilter.toDate} onChange={val => setMasterInstallmentsFilter({ ...masterInstallmentsFilter, toDate: val })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
             </div>
           )}
@@ -2255,11 +2255,9 @@ const App: React.FC = () => {
               {/* Linha 2: Vencimento e Descrição */}
               <div className="md:col-span-4">
                 <label className="block text-xs font-black text-slate-400 uppercase mb-2 tracking-widest">1º Vencimento</label>
-                <input 
-                  type="text" 
+                <BrazilianDateInput 
                   value={newSale.firstDueDate} 
-                  onChange={(e) => setNewSale({ ...newSale, firstDueDate: applyDateMask(e.target.value) })} 
-                  placeholder="DD/MM/AAAA"
+                  onChange={(val) => setNewSale({ ...newSale, firstDueDate: val })} 
                   className="w-full border border-gray-200 rounded-xl p-4 bg-gray-50 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 font-bold text-sm transition-all" 
                 />
               </div>
@@ -2428,8 +2426,8 @@ const App: React.FC = () => {
                 <div className="flex-1 space-y-6">
                   <div className="flex flex-col gap-2"><label className="text-xs font-black text-slate-400 uppercase tracking-widest">Tipo de Relatório</label><div className="flex bg-slate-100 p-1 rounded-2xl w-full max-w-md"><button onClick={() => setMovementsFilter({ ...movementsFilter, type: 'RECEIVED' })} className={`flex-1 px-4 py-3 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 ${movementsFilter.type === 'RECEIVED' ? 'bg-white text-blue-600 shadow-lg' : 'text-slate-400'}`}><TrendingUp size={18} /> RECEBIDOS</button><button onClick={() => setMovementsFilter({ ...movementsFilter, type: 'OVERDUE' })} className={`flex-1 px-4 py-3 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 ${movementsFilter.type === 'OVERDUE' ? 'bg-white text-red-600 shadow-lg' : 'text-slate-400'}`}><AlertCircle size={18} /> ATRASADOS</button></div></div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div><label className="block text-[10px] font-black text-slate-400 uppercase mb-1">De</label><input type="date" value={movementsFilter.fromDate} onChange={(e) => setMovementsFilter({ ...movementsFilter, fromDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" /></div>
-                    <div><label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Até</label><input type="date" value={movementsFilter.toDate} onChange={(e) => setMovementsFilter({ ...movementsFilter, toDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                    <div><label className="block text-[10px] font-black text-slate-400 uppercase mb-1">De</label><BrazilianDateInput value={movementsFilter.fromDate} onChange={(val) => setMovementsFilter({ ...movementsFilter, fromDate: val })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                    <div><label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Até</label><BrazilianDateInput value={movementsFilter.toDate} onChange={(val) => setMovementsFilter({ ...movementsFilter, toDate: val })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" /></div>
                     {role === Role.MASTER && (<div><label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Filtrar Cobrador</label><select value={movementsFilter.collectorId} onChange={(e) => setMovementsFilter({ ...movementsFilter, collectorId: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold">{role === Role.MASTER && <option value="ALL">Todos os Cobradores</option>}{collectors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>)}
                     <div className="flex items-end"><button onClick={() => window.print()} className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-black text-sm uppercase py-3.5 rounded-xl hover:bg-blue-700 transition-all active:scale-95 shadow-lg"><Printer size={18} /> Gerar PDF / Imprimir</button></div>
                   </div>
@@ -2475,7 +2473,7 @@ const App: React.FC = () => {
                         </td>
                       </tr>
                     )) : (
-                      <tr><td colSpan={5} className="px-6 py-20 text-center text-slate-300 italic uppercase font-black">Nenhum registro encontrado no período</td></tr>
+                      <tr><td colSpan={5} className="px-6 py-20 text-center text-slate-300 italic uppercase font-black">N nenhum registro encontrado no período</td></tr>
                     )}
                   </tbody>
                   {filteredMovements.length > 0 && (
@@ -2505,8 +2503,8 @@ const App: React.FC = () => {
                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Relatório de Comissões</label>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div><label className="block text-[10px] font-black text-slate-400 uppercase mb-1">De</label><input type="date" value={commissionFilter.fromDate} onChange={(e) => setCommissionFilter({ ...commissionFilter, fromDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" /></div>
-                    <div><label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Até</label><input type="date" value={commissionFilter.toDate} onChange={(e) => setCommissionFilter({ ...commissionFilter, toDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                    <div><label className="block text-[10px] font-black text-slate-400 uppercase mb-1">De</label><BrazilianDateInput value={commissionFilter.fromDate} onChange={(val) => setCommissionFilter({ ...commissionFilter, fromDate: val })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                    <div><label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Até</label><BrazilianDateInput value={commissionFilter.toDate} onChange={(val) => setCommissionFilter({ ...commissionFilter, toDate: val })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" /></div>
                     {role === Role.MASTER && (<div><label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Filtrar Cobrador</label><select value={commissionFilter.collectorId} onChange={(e) => setCommissionFilter({ ...commissionFilter, collectorId: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold">{role === Role.MASTER && <option value="ALL">Todos os Cobradores</option>}{collectors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>)}
                     <div className="flex items-end"><button onClick={() => window.print()} className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-black text-sm uppercase py-3.5 rounded-xl hover:bg-blue-700 transition-all active:scale-95 shadow-lg"><Printer size={18} /> Gerar PDF / Imprimir</button></div>
                   </div>
@@ -2594,19 +2592,17 @@ const App: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Data Inicial</label>
-                  <input
-                    type="date"
+                  <BrazilianDateInput
                     value={financialReportFilter.startDate}
-                    onChange={e => setFinancialReportFilter({ ...financialReportFilter, startDate: e.target.value })}
+                    onChange={val => setFinancialReportFilter({ ...financialReportFilter, startDate: val })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Data Final</label>
-                  <input
-                    type="date"
+                  <BrazilianDateInput
                     value={financialReportFilter.endDate}
-                    onChange={e => setFinancialReportFilter({ ...financialReportFilter, endDate: e.target.value })}
+                    onChange={val => setFinancialReportFilter({ ...financialReportFilter, endDate: val })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
                   />
                 </div>
@@ -2910,7 +2906,7 @@ const App: React.FC = () => {
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4 print:hidden">
             <div className="bg-white rounded-[40px] w-full max-w-md p-10 shadow-2xl scale-in-center overflow-hidden relative">
               <h3 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tighter">Recebimento</h3>
-              <p className="text-slate-500 mb-8 text-sm font-medium">Cliente: <span className="font-black text-blue-600">{selectedInstallment?.client?.name}</span></p>
+              <p className="text-slate-50 mb-8 text-sm font-medium">Cliente: <span className="font-black text-blue-600">{selectedInstallment?.client?.name}</span></p>
 
               <div className="space-y-6 mb-10">
                 <div className="grid grid-cols-2 gap-4">
@@ -2951,7 +2947,7 @@ const App: React.FC = () => {
 
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 flex items-center gap-2"><ArrowRight size={12} /> Próxima Cobrança (Data)</label>
-                  <input type="date" value={nextVisitDate} onChange={e => setNextVisitDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-black outline-none focus:ring-2 focus:ring-blue-600" />
+                  <BrazilianDateInput value={nextVisitDate} onChange={val => setNextVisitDate(val)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-black outline-none focus:ring-2 focus:ring-blue-600" />
                 </div>
               </div>
 
@@ -3144,6 +3140,30 @@ const App: React.FC = () => {
         />
       )}
     </>
+  );
+};
+
+const BrazilianDateInput = ({ value, onChange, className }: { value: string, onChange: (val: string) => void, className?: string }) => {
+  const displayValue = value && value.includes('-') ? value.split('-').reverse().join('/') : (value || '');
+  
+  return (
+    <input
+      type="text"
+      placeholder="DD/MM/AAAA"
+      value={displayValue}
+      onChange={(e) => {
+        const masked = applyDateMask(e.target.value);
+        if (masked.length === 10) {
+          const parts = masked.split('/');
+          if (parts.length === 3) {
+            onChange(`${parts[2]}-${parts[1]}-${parts[0]}`);
+            return;
+          }
+        }
+        onChange(masked);
+      }}
+      className={className}
+    />
   );
 };
 
