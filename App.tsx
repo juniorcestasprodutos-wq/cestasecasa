@@ -1588,8 +1588,8 @@ const App: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )) : (
           <div className="flex flex-col items-center justify-center h-[40vh] text-slate-300">
