@@ -7,7 +7,9 @@ export const formatCurrency = (value: number) => {
 };
 
 export const formatDate = (dateStr: string) => {
-  const [year, month, day] = dateStr.split('-');
+  if (!dateStr) return '';
+  const datePart = dateStr.split('T')[0];
+  const [year, month, day] = datePart.split('-');
   return `${day}/${month}/${year}`;
 };
 

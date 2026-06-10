@@ -2000,6 +2000,22 @@ const App: React.FC = () => {
                     </button>
                     <button
                       onClick={async () => {
+                        if (confirm("Tem certeza que deseja resetar a conexão? Isso desconectará o WhatsApp atual e gerará um novo QR Code.")) {
+                          try {
+                            await axios.delete('/api/whatsapp/qrcode');
+                            alert("Conexão resetada! Clique em 'Gerar / Ver QR Code' novamente para ler um código novo.");
+                            setQrCodeBase64(null);
+                          } catch (e: any) {
+                            alert("Falha ao resetar: " + (e.response?.data?.error || e.message));
+                          }
+                        }
+                      }}
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-xl text-sm"
+                    >
+                      Resetar Conexão
+                    </button>
+                    <button
+                      onClick={async () => {
                         if (!mpConfig.whatsappApiToken || !mpConfig.whatsappPhoneNumberId || !mpConfig.whatsappBaseUrl) return alert("Configure os campos acima primeiro.");
                         const testPhone = prompt("Digite seu número com DDD (ex: 11988887777):");
                         if (!testPhone) return;
