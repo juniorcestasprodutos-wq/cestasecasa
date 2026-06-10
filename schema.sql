@@ -78,7 +78,7 @@ CREATE TABLE sale_items (
 
 -- Create Installments Table
 CREATE TABLE installments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY,
     sale_id TEXT REFERENCES sales(id) ON DELETE CASCADE,
     number INTEGER NOT NULL,
     due_date TIMESTAMP WITH TIME ZONE,
