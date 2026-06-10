@@ -70,13 +70,15 @@ export default async function handler(req: any, res: any) {
             };
         }
 
+        const baseUrl = req.headers.host ? `https://${req.headers.host}` : 'https://cestaecasa.pages.dev';
+
         const mpPayload = {
             transaction_amount: amount,
             description: description,
             payment_method_id: 'pix',
             date_of_expiration: expirationDate.toISOString(),
             external_reference: installmentId,
-            notification_url: `https://juniorcestas.vercel.app/api/webhooks/mercadopago`,
+            notification_url: `${baseUrl}/api/webhooks/mercadopago`,
             payer
         };
 

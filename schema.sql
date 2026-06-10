@@ -47,7 +47,7 @@ CREATE TABLE products (
 
 -- Create Sales Table
 CREATE TABLE sales (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY,
     client_id UUID REFERENCES clients(id),
     collector_id UUID REFERENCES users(id),
     delivery_person_id UUID REFERENCES users(id),
@@ -67,7 +67,7 @@ CREATE TABLE sales (
 -- Create Sale Items Table
 CREATE TABLE sale_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    sale_id UUID REFERENCES sales(id) ON DELETE CASCADE,
+    sale_id TEXT REFERENCES sales(id) ON DELETE CASCADE,
     product_id UUID REFERENCES products(id),
     quantity NUMERIC NOT NULL,
     description TEXT,
@@ -79,7 +79,7 @@ CREATE TABLE sale_items (
 -- Create Installments Table
 CREATE TABLE installments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    sale_id UUID REFERENCES sales(id) ON DELETE CASCADE,
+    sale_id TEXT REFERENCES sales(id) ON DELETE CASCADE,
     number INTEGER NOT NULL,
     due_date TIMESTAMP WITH TIME ZONE,
     amount NUMERIC NOT NULL,
@@ -100,7 +100,7 @@ CREATE TABLE stock_movements (
     product_id UUID REFERENCES products(id),
     type TEXT NOT NULL,
     quantity NUMERIC NOT NULL,
-    sale_id UUID REFERENCES sales(id),
+    sale_id TEXT REFERENCES sales(id),
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
