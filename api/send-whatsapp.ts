@@ -25,46 +25,43 @@ export default async function handler(req: any, res: any) {
             return res.status(400).json({ error: "WhatsApp API não configurada." });
         }
 
-        const payload: any = {
-            messaging_product: "whatsapp",
-            to: formattedPhone,
-            type: template ? "template" : "text",
-        };
+        const baseUrl = config.whatsapp_base_url || "https://evolution-api-production-8ad2.up.railway.app";
+        const instanceName = config.whatsapp_phone_number_id;
+        const apiKey = config.whatsapp_api_token;
 
-        if (template) {
-            payload.template = template;
-        } else {
-            payload.text = { body: message };
-        }
+        let textToSend = message;
+        let secondTextToSend = pixCode || null;
 
-        const response = await axios.post(
-            `https://graph.facebook.com/v21.0/${config.whatsapp_phone_number_id}/messages`,
-            payload,
-            {
-                headers: {
-                    'Authorization': `Bearer ${config.whatsapp_api_token}`,
-                    'Content-Type': 'application/json'
+        if (template && template.name) {
+            const tName = template.name;
+            const params = template.components?.[0]?.parameters?.map((p: any) => p.text) || [];
+            
+            if (tName === 'obrigadopagamentoo') {
+                textToSend = `Olá ${params[0] || 'Cliente'}!\nRecebemos o seu pagamento no valor de R$ ${params[1]}.\nMuito obrigado!`;
+            } else if (tName === 'aviso_de_vencimento') {
+                textToSend = `Olá ${params[0] || 'Cliente'}!\nLembrando que hoje é o vencimento da parcela da sua compra no valor de R$ ${params[2]}.\n\nSegue abaixo o PIX Copia e Cola para pagamento:`;
+                if (!secondTextToSend && params[3]) {
+                    secondTextToSend = params[3];
                 }
             }
+        }
+
+        const url = `${baseUrl}/message/sendText/${instanceName}`;
+        
+        // 1. Enviar mensagem principal
+        const response = await axios.post(
+            url,
+            { number: formattedPhone, text: textToSend || "Mensagem automática" },
+            { headers: { 'apikey': apiKey, 'Content-Type': 'application/json' } }
         );
 
-        // Envio do segundo balão (Código PIX) se solicitado
-        if (pixCode) {
+        // 2. Enviar segundo balão (Código PIX) se solicitado
+        if (secondTextToSend) {
             await new Promise(resolve => setTimeout(resolve, 1000));
             await axios.post(
-                `https://graph.facebook.com/v21.0/${config.whatsapp_phone_number_id}/messages`,
-                {
-                    messaging_product: "whatsapp",
-                    to: formattedPhone,
-                    type: "text",
-                    text: { body: `*Copia e Cola PIX:* \n\n\`${pixCode}\`` }
-                },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${config.whatsapp_api_token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
+                url,
+                { number: formattedPhone, text: secondTextToSend },
+                { headers: { 'apikey': apiKey, 'Content-Type': 'application/json' } }
             ).catch(err => console.error("Erro no follow-up:", err.response?.data || err.message));
         }
 
@@ -76,38 +73,19 @@ export default async function handler(req: any, res: any) {
                 .ilike('phone', `%${formattedPhone.slice(-8)}%`)
                 .single();
 
-            let logMessage = message;
-            if (template) {
-                const params = template.components?.find((c: any) => c.type === 'body')?.parameters || [];
-                const paramValues = params.map((p: any) => p.text);
-                
-                if (template.name === 'aviso_de_vencimento') {
-                    const nome = paramValues[0] || '';
-                    const parcela = paramValues[1] || '';
-                    const valor = paramValues[2] || '';
-                    logMessage = `CESTAS E CASA: Olá ${nome}, segue seu código PIX para pagamento da parcela ${parcela}:\n\nValor: R$ ${valor}`;
-                } else if (template.name === 'obrigadopagamentoo') {
-                    const nome = paramValues[0] || '';
-                    const valor = paramValues[1] || '';
-                    logMessage = `CESTAS E CASA: Olá ${nome}, recebemos o seu pagamento de R$ ${valor}. Obrigado!`;
-                } else {
-                    logMessage = `[Notificação Oficial: ${template.name}]`;
-                }
-            }
-
             const logEntry = {
                 phone: formattedPhone,
-                message: logMessage,
+                message: textToSend,
                 direction: 'outbound' as const,
                 client_id: client?.id || null
             };
 
             await supabase.from('whatsapp_messages').insert(logEntry);
 
-            if (pixCode) {
+            if (secondTextToSend) {
                 await supabase.from('whatsapp_messages').insert({
                     phone: formattedPhone,
-                    message: `*Copia e Cola PIX:* \n\n${pixCode}`,
+                    message: `*Copia e Cola PIX:* \n\n${secondTextToSend}`,
                     direction: 'outbound',
                     client_id: client?.id || null
                 });

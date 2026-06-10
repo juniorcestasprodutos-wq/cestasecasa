@@ -128,54 +128,26 @@ export default async function handler(req: any, res: any) {
                     const cleanedPhone = item.client.phone.replace(/\D/g, '');
                     const formattedPhone = cleanedPhone.length <= 11 ? `55${cleanedPhone}` : cleanedPhone;
 
-                    // 1. Envio do Template Oficial
+                    const baseUrl = config.whatsapp_base_url || "https://evolution-api-production-8ad2.up.railway.app";
+                    const instanceName = config.whatsapp_phone_number_id;
+                    const apiKey = config.whatsapp_api_token;
+
+                    const textToSend = `Olá ${item.client.name || 'Cliente'}!\nLembrando que hoje é o vencimento da parcela da sua compra no valor de R$ ${amountDue.toFixed(2).replace('.', ',')}.\n\nSegue abaixo o PIX Copia e Cola para pagamento:`;
+                    const url = `${baseUrl}/message/sendText/${instanceName}`;
+
+                    // 1. Envio do Template Oficial (Agora via Evolution)
                     await axios.post(
-                        `https://graph.facebook.com/v22.0/${config.whatsapp_phone_number_id}/messages`,
-                        {
-                            messaging_product: "whatsapp",
-                            recipient_type: "individual",
-                            to: formattedPhone,
-                            type: "template",
-                            template: {
-                                name: "aviso_de_vencimento",
-                                language: { code: "pt_BR" },
-                                components: [
-                                    {
-                                        type: "body",
-                                        parameters: [
-                                            { type: "text", text: item.client.name || "Cliente" },
-                                            { type: "text", text: item.sale.id.toString() },
-                                            { type: "text", text: amountDue.toFixed(2).replace('.', ',') },
-                                            { type: "text", text: pixCode }
-                                        ]
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            headers: {
-                                'Authorization': `Bearer ${config.whatsapp_api_token}`,
-                                'Content-Type': 'application/json'
-                            }
-                        }
+                        url,
+                        { number: formattedPhone, text: textToSend },
+                        { headers: { 'apikey': apiKey, 'Content-Type': 'application/json' } }
                     );
 
                     // 2. Envio do segundo balão (Código PIX para cópia)
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     await axios.post(
-                        `https://graph.facebook.com/v22.0/${config.whatsapp_phone_number_id}/messages`,
-                        {
-                            messaging_product: "whatsapp",
-                            to: formattedPhone,
-                            type: "text",
-                            text: { body: `*Copia e Cola PIX:* \n\n\`${pixCode}\`` }
-                        },
-                        {
-                            headers: {
-                                'Authorization': `Bearer ${config.whatsapp_api_token}`,
-                                'Content-Type': 'application/json'
-                            }
-                        }
+                        url,
+                        { number: formattedPhone, text: pixCode },
+                        { headers: { 'apikey': apiKey, 'Content-Type': 'application/json' } }
                     ).catch(err => console.error("Erro no follow-up cron:", err.response?.data || err.message));
  
                     // --- Registro no Histórico do Chat ---
