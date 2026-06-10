@@ -6,6 +6,17 @@ const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1N
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default async function handler(req: any, res: any) {
+    if (req.method === 'DELETE') {
+        try {
+            const { data: config } = await supabase.from('config').select('*').eq('id', 'default').single();
+            const url = `${config.whatsapp_base_url}/instance/logout/${config.whatsapp_phone_number_id}`;
+            await axios.delete(url, { headers: { 'apikey': config.whatsapp_api_token } }).catch(() => {});
+            return res.json({ status: 'ok', message: 'Instância desconectada' });
+        } catch (error: any) {
+            return res.status(500).json({ error: 'Erro ao resetar instância' });
+        }
+    }
+
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
